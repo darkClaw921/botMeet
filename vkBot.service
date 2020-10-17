@@ -1,0 +1,16 @@
+[Unit]
+Description=Meet Bot
+After=network.target
+
+[Service]
+User=igor
+Group=igor
+
+WorkingDirectory=/home/igor/botMeet
+Environment="PYTHONPATH=/home/igor/botMeet"
+ExecStart=/home/igor/botMeet/.venv/bin/python /home/igor/botMeet/kgtaMeetBot.py
+
+[Install]
+WantedBy=multi-user.target
+
+# sudo cp /home/igor/botMeet/vkBot.service /etc/systemd/system/vkBot.service
