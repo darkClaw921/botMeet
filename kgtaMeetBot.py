@@ -25,7 +25,7 @@ vk = vk_session.get_api()
 
 print('Создание таблицы ...')
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive'] # что то для чего-то нужно Костыль
-creds = ServiceAccountCredentials.from_json_keyfile_name('/home/igorgerasimovsid/ViktorinaProfkom-50c0fbdcd821.json', scope) # Секретынй файл json для доступа к API
+creds = ServiceAccountCredentials.from_json_keyfile_name('/Users/igorgerasimov/Desktop/Python/KGTA/meetBot/ViktorinaProfkom-50c0fbdcd821.json', scope) # Секретынй файл json для доступа к API
 client = gspread.authorize(creds)
 sheet = client.open('RegisterForMeet').sheet1 # Имя таблицы
 
@@ -61,7 +61,13 @@ usersId = [] # список людей которые уже учавствую�
 usersId.append(0) # добавляем фантомного пльзователя 
 start = False
 rowQuestion = 4
-columCell = 1
+
+
+countRegisterUser = sheet.get("A2")
+countRegisterUser = countRegisterUser[0]
+countRegisterUser = countRegisterUser[0]
+print(countRegisterUser)
+columCell = int(countRegisterUser)
 
 def keyboardCreater(ButtonText1, ButtonText2, ButtonText3, ButtonText4): 
     keyboard = VkKeyboard(one_time=True)
@@ -78,13 +84,18 @@ def keyboardCreater(ButtonText1, ButtonText2, ButtonText3, ButtonText4):
     return keyboard
 
 def printQuestion(random_id, user_id):
-    global columCell, questionsData,rowQuestion
+    global columCell, questionsData,rowQuestion, countRegisterUser
     
     columCell += 1
+    sheet.update_cell(2, 1, int(countRegisterUser) + 1)
     privateColumCell = columCell
     privateRowCell = rowQuestion
 
     firstConnection(user_id, privateColumCell)
+
+    privateUserInfo = vk.users.get(user_ids = user_id)
+    privateUserInfo = privateUserInfo[0]
+    print(privateUserInfo["id"])
     
     for question in questionsData:
 
@@ -131,7 +142,7 @@ def printQuestion(random_id, user_id):
            
         print('next')
 
-    delite = usersId.index(event.user_id)
+    delite = usersId.index(privateUserInfo["id"])
     usersId.pop(delite)
 
     vk.messages.send(
@@ -186,8 +197,14 @@ for event in longpoll.listen():
 
     if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
 
-        start = getMessege("Встреча",event.user_id)
-        
+        # startMessage = getMessege("Встреча",event.user_id)
+        startMessage = event.text
+        print((str(startMessage)) == ("Встреча" or "Встреча " or "встреча" or "встреча "))
+        if (str(startMessage)) == ("Встреча" or "Встреча " or "встреча" or "встреча "):
+            start = True
+        else:
+            start = False
+
         if start:
             whoUser = newUser()
             # whoUser = True
