@@ -25,6 +25,7 @@ vk = vk_session.get_api()
 
 print('Создание таблицы ...')
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive'] # что то для чего-то нужно Костыль
+# creds = ServiceAccountCredentials.from_json_keyfile_name('/home/igorgerasimovsid/ViktorinaProfkom-50c0fbdcd821.json', scope)
 creds = ServiceAccountCredentials.from_json_keyfile_name('/Users/igorgerasimov/Desktop/Python/KGTA/meetBot/ViktorinaProfkom-50c0fbdcd821.json', scope) # Секретынй файл json для доступа к API
 client = gspread.authorize(creds)
 sheet = client.open('RegisterForMeet').sheet1 # Имя таблицы
@@ -86,10 +87,16 @@ def keyboardCreater(ButtonText1, ButtonText2, ButtonText3, ButtonText4):
 def printQuestion(random_id, user_id):
     global columCell, questionsData,rowQuestion, countRegisterUser
     
+    countRegisterUser = sheet.get("A2")
+    countRegisterUser = countRegisterUser[0]
+    countRegisterUser = countRegisterUser[0]
+    print(countRegisterUser)
+    columCell = int(countRegisterUser)
+
     columCell += 1
     sheet.update_cell(2, 1, int(countRegisterUser) + 1)
     privateColumCell = columCell
-    privateRowCell = rowQuestion
+    privateRowCell = rowQuestion 
 
     firstConnection(user_id, privateColumCell)
 
