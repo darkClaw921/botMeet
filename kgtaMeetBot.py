@@ -19,7 +19,7 @@ import threading
 import test 
 
 # VK setings
-vk_session = vk_api.VkApi(token = 'f35057fbf248d8041736e783c23d38ebf2de5e1fe1c403e64817c348e207cfdd397d6979c4688a945cc8f')
+vk_session = vk_api.VkApi(token = '')
 longpoll = VkLongPoll(vk_session)
 vk = vk_session.get_api()
 
@@ -41,6 +41,28 @@ def createCell(countCell):
         indexCell += 1
         sheet.update_cell(1, indexCell, f"Вопрос {numberQues+1}") 
 
+questionsDataPhoto = { # Вопрос : ответ
+    "Где хотите принять участие? " : "1",
+    "Ваше ФИО " : '2',
+    'Группа': '3'
+}
+
+typeQuestionsPhoto = { # вопрос : тип вопроса
+    "Где хотите принять участие? " : ['Принять участие во встречах','Принять участие в фотомарафоне'],
+    "Ваше ФИО " : [''],
+    'Группа': ['']
+
+}
+questionsDataDesing = { # Вопрос : ответ
+    "Ваше ФИО " : '1',
+    'Группа': '2'
+}
+
+typeQuestionsDesing = { # вопрос : тип вопроса
+    "Ваше ФИО " : [''],
+    'Группа': ['']
+
+}
 questionsData = { # Вопрос : ответ
     "На какую встречу хотите записаться? " : "1",
     "Ваше ФИО " : '2',
@@ -53,7 +75,6 @@ typeQuestions = { # вопрос : тип вопроса
     'Группа': ['']
 
 }
-
 createCell(len(questionsData))
 
 print("Таблица создана")
@@ -83,8 +104,171 @@ def keyboardCreater(ButtonText1, ButtonText2, ButtonText3, ButtonText4):
     keyboard = keyboard.get_keyboard()
 
     return keyboard
+def keyboardCreater2(ButtonText1, ButtonText2): 
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button(ButtonText1)
+    keyboard.add_line()
+    keyboard.add_button(ButtonText2)
 
+    keyboard = keyboard.get_keyboard()
+
+    return keyboard
 def printQuestion(random_id, user_id):
+    global columCell, questionsData,rowQuestion, countRegisterUser
+    
+    countRegisterUser = sheet.get("A2")
+    countRegisterUser = countRegisterUser[0]
+    countRegisterUser = countRegisterUser[0]
+    print(countRegisterUser)
+    columCell = int(countRegisterUser)
+
+    columCell += 1
+    sheet.update_cell(2, 1, int(countRegisterUser) + 1)
+    privateColumCell = columCell
+    privateRowCell = rowQuestion 
+
+    firstConnection(user_id, privateColumCell)
+
+    privateUserInfo = vk.users.get(user_ids = user_id)
+    privateUserInfo = privateUserInfo[0]
+    print(privateUserInfo["id"])
+    
+    for question in questionsDataPhoto:
+
+        typeQuest = len(typeQuestionsPhoto[question])
+
+        photo = None
+        keyboard = None
+
+        print(typeQuest)
+        if typeQuest == 1:
+            if typeQuestionsPhoto[question] != [''] :
+                photo = typeQuestionsPhoto[question].pop(0)
+            else:
+                print('Просто ответ')
+        
+        elif typeQuest == 5:
+            photo = typeQuestionsPhoto[question].pop(0)
+            keyboard = keyboardCreater(*typeQuestionsPhoto[question])
+        
+        elif typeQuest == 2:
+            print(typeQuestionsPhoto[question])
+            keyboard = keyboardCreater2(*typeQuestionsPhoto[question])
+            
+        vk.messages.send(
+                    user_id=user_id,
+                    random_id=random_id,
+                    attachment = photo,
+                    message = question,
+                    keyboard = keyboard
+                )
+
+        getMessege(questionsDataPhoto[question], user_id)
+
+        otvet = vk.messages.getHistory(user_id = user_id, count = 1)
+            # распарсили ответ
+        otvet = otvet['items']
+        otvet = otvet[0]
+        otvet = otvet['text']
+
+           
+        sheet.update_cell(privateColumCell, privateRowCell, str(otvet))
+
+        privateRowCell += 1    
+           
+        print('next')
+
+    delite = usersId.index(privateUserInfo["id"])
+    usersId.pop(delite)
+
+    vk.messages.send(
+                    user_id=user_id,
+                    random_id=random_id,
+                    attachment = photo,
+                    message = 'Вы зарегистрированы '
+                    # keyboard = keyboard
+                )
+def printQuestionDesing(random_id, user_id):
+
+    global columCell, questionsData,rowQuestion, countRegisterUser
+    
+    countRegisterUser = sheet.get("A2")
+    countRegisterUser = countRegisterUser[0]
+    countRegisterUser = countRegisterUser[0]
+    print(countRegisterUser)
+    columCell = int(countRegisterUser)
+
+    columCell += 1
+    sheet.update_cell(2, 1, int(countRegisterUser) + 1)
+    privateColumCell = columCell
+    privateRowCell = rowQuestion 
+
+    firstConnection(user_id, privateColumCell)
+
+    sheet.update_cell(privateColumCell, privateRowCell, 'Дизайн')
+
+    privateRowCell += 1
+    privateUserInfo = vk.users.get(user_ids = user_id)
+    privateUserInfo = privateUserInfo[0]
+    print(privateUserInfo["id"])
+    
+    for question in questionsDataDesing:
+
+        typeQuest = len(typeQuestionsDesing[question])
+
+        photo = None
+        keyboard = None
+
+        print(typeQuest)
+        if typeQuest == 1:
+            if typeQuestionsDesing[question] != [''] :
+                photo = typeQuestionsDesing[question].pop(0)
+            else:
+                print('Просто ответ')
+        
+        elif typeQuest == 5:
+            photo = typeQuestionsDesing[question].pop(0)
+            keyboard = keyboardCreater(*typeQuestionsDesing[question])
+        
+        elif typeQuest == 2:
+            print(typeQuestionsDesing[question])
+            keyboard = keyboardCreater(*typeQuestionsDesing[question])
+            
+        vk.messages.send(
+                    user_id=user_id,
+                    random_id=random_id,
+                    attachment = photo,
+                    message = question,
+                    keyboard = keyboard
+                )
+
+        getMessege(questionsDataDesing[question], user_id)
+
+        otvet = vk.messages.getHistory(user_id = user_id, count = 1)
+            # распарсили ответ
+        otvet = otvet['items']
+        otvet = otvet[0]
+        otvet = otvet['text']
+
+           
+        sheet.update_cell(privateColumCell, privateRowCell, str(otvet))
+        
+
+        privateRowCell += 1    
+           
+        print('next')
+
+    delite = usersId.index(privateUserInfo["id"])
+    usersId.pop(delite)
+
+    vk.messages.send(
+                    user_id=user_id,
+                    random_id=random_id,
+                    attachment = photo,
+                    message = 'Вы зарегистрированы '
+                    # keyboard = keyboard
+                )                 
+def printQuestionMeet(random_id, user_id):
     global columCell, questionsData,rowQuestion, countRegisterUser
     
     countRegisterUser = sheet.get("A2")
@@ -206,26 +390,59 @@ for event in longpoll.listen():
 
         # startMessage = getMessege("Встреча",event.user_id)
         startMessage = event.text
-        print((str(startMessage)) == ("Встреча" or "Встреча " or "встреча" or "встреча "))
-        if (str(startMessage)) == ("Встреча" or "Встреча " or "встреча" or "встреча "):
-            start = True
-        else:
-            start = False
+        print((str(startMessage)) == ("Фото" or "Фото " or "фото" or "фото "))
+        if (str(startMessage)) == ("Фото" or "Фото " or "фото" or "фото "):
 
-        if start:
             whoUser = newUser()
-            # whoUser = True
-        
             if whoUser:
                 print("Новый пользователь")
                 
                 usersId.append(event.user_id)
-            
+
                 Thread(target=printQuestion, args=(event.random_id, event.user_id,)).start() # Запуск нового потока для нового пользвоателя
             else:
                 print("Старый пользователь")
+            start = True
+
         else:
             start = False
+        if (str(startMessage)) == ("Дизайн" or "Дизайн " or "дизайн" or "дизайн "):
+            whoUser = newUser()
+            if whoUser:
+                print("Новый пользователь")
+                
+                usersId.append(event.user_id)
+
+                Thread(target=printQuestionDesing, args=(event.random_id, event.user_id,)).start() # Запуск нового потока для нового пользвоателя
+            else:
+                print("Старый пользователь")
+            start = True
+        
+        if (str(startMessage)) == ("Встреча" or "Встреча " or "встреча" or "встреча "):
+            whoUser = newUser()
+            if whoUser:
+                print("Новый пользователь")
+                
+                usersId.append(event.user_id)
+
+                Thread(target=printQuestionMeet, args=(event.random_id, event.user_id,)).start() # Запуск нового потока для нового пользвоателя
+            else:
+                print("Старый пользователь")
+            start = True
+        # if start:
+        #     whoUser = newUser()
+        #     # whoUser = True
+        
+        #     if whoUser:
+        #         print("Новый пользователь")
+                
+        #         usersId.append(event.user_id)
+
+        #         Thread(target=printQuestion, args=(event.random_id, event.user_id,)).start() # Запуск нового потока для нового пользвоателя
+        #     else:
+        #         print("Старый пользователь")
+        # else:
+        #     start = False
 
                 
 
